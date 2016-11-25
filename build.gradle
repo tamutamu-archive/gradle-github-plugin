@@ -1,0 +1,48 @@
+plugins {
+    id 'groovy'
+    id 'maven'
+    id 'com.gradle.plugin-publish' version '0.9.6'
+}
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+repositories {
+    jcenter()
+    maven {
+        url "http://repository.codehaus.org"
+    }
+}
+
+dependencies {
+    compile gradleApi()
+    compile localGroovy()
+    testCompile('org.spockframework:spock-core:1.0-groovy-2.4') {
+        exclude module: 'groovy-all'
+    }
+    compile 'org.ajoberstar:gradle-git:1.6.0-rc.1'
+    
+    compile 'org.codehaus.groovy.modules.http-builder:http-builder:0.7.1'
+    compile 'org.apache.httpcomponents:httpmime:4.2.5'
+    runtime 'org.codehaus.groovy.modules.http-builder:http-builder:0.7.1'
+    runtime 'org.apache.httpcomponents:httpmime:4.2.5'
+    
+    testCompile 'cglib:cglib-nodep:3.1'
+}
+
+group = 'com.github.tamutamu'
+version = '1.0.0-SNAPSHOT'
+
+pluginBundle {
+    website = 'https://github.com/int128/gradle-plugin-starter'
+    vcsUrl = 'https://github.com/int128/gradle-plugin-starter'
+    description = 'Hello World Plugin'
+    tags = ['example']
+
+    plugins {
+        helloPlugin {
+            id = 'com.example.hello'
+            displayName = 'Hello World Plugin'
+        }
+    }
+}
