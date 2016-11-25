@@ -2,44 +2,47 @@ package com.github.tamutamu.gradle.plugins.util
 
 import static groovyx.net.http.ContentType.*
 import static groovyx.net.http.Method.*
+
+import com.github.tamutamu.gradle.plugins.config.GitHubConfig
+
 import groovy.json.*
 import groovyx.net.http.HTTPBuilder
 
 class GithubApi {
 
-	final API_BASE_URL = "https://api.github.com/"
-
-	def org
+	GitHubConfig config
 
 	def http
-	
+
 	def slurper = new JsonSlurper()
 
-	GithubApi(org) {
-		this.org = org
+	GithubApi(config) {
+		this.config = config
 		http = createHttp()
 	}
-	
+
 	def createHttp() {
-		def buildHttp = new HTTPBuilder(API_BASE_URL)
-		
-		// setting proxy.
-		def httpProxyHost = System.getProperty("http.proxyHost")
-        def httpProxyPort = System.getProperty("http.proxyPort").toInteger()
-		
-		if(httpProxyHost && httpProxyPort) {
-		  buildHttp.setProxy(httpProxyHost, httpProxyPort, "http")
+		def buildHttp = new HTTPBuilder(this.config.API_BASE_URL)
+
+		if(System.hasProperty("http.proxyHost") && System.hasProperty("http.proxyPort")) {
+			def httpProxyHost = System.getProperty("http.proxyHost")
+			def httpProxyPort = System.getProperty("http.proxyPort").toInteger()
+			buildHttp.setProxy(httpProxyHost, httpProxyPort, "http")
 		}
 
 		buildHttp
 	}
-	
-	def getRepoList(page=1) {
-		
+
+	def getCloneUrlAll() {
+		getRepoObj().collect { it.clone_url }
+	}
+
+	def getRepoObj(page=1) {
+
 		def resJsonText = http.request( GET, TEXT ) {
-			uri.path = "/orgs/${org}/repos"
-			uri.query = [ page: page, per_page : 10 ]
-			
+			uri.path = this.config.apiBasePath() + "/repos"
+			uri.query = [ page: page, per_page : 30 ]
+
 			headers.Accept = 'application/json'
 			headers.'User-Agent' = "Mozilla/5.0 Firefox/3.0.4"
 
@@ -48,16 +51,14 @@ class GithubApi {
 			}
 			response.failure = {res -> println "error ${res.statusLine.statusCode}. ${uri.path}" }
 		}
-		
+
 		def json = slurper.parseText(resJsonText)
-		
+
 		if(json.empty){
-		  []
+			[]
 		} else {
-		  println page 
-		  json += getRepoList(++page)
-		  json
+			json += getRepoObj(++page)
+			json
 		}
-		
 	}
 }

@@ -1,28 +1,27 @@
 package com.github.tamutamu.gradle.plugins.config
 
-import org.gradle.listener.ActionBroadcast
-import org.gradle.util.ConfigureUtil
+import org.gradle.api.InvalidUserDataException
 
 class GitHubConfig {
 
+	final API_BASE_URL = "https://api.github.com/"
+
 	/** directory of git clone output */
 	def String dir
-	
+
+	/** Github Organization Name */
+	def String user
+
 	/** Github Organization Name */
 	def String org
-	
-	/** including repository name */
-	def String include
-	
-	def apiBaseUrl() {
-		"https://api.github.com/orgs/${org}"
-	}
-	
-	def Closure paramClosure
 
-	def ActionBroadcast<String> paramClosureList = new ActionBroadcast<String>()
-
-	def closureList(Closure closure) {
-		paramClosureList.add(ConfigureUtil.configureUsing(closure))
+	def apiBasePath() {
+		if(user) {
+			"https://api.github.com/users/${user}"
+		}else if(org){
+			"https://api.github.com/orgs/${org}"
+		}else{
+			throw new InvalidUserDataException("Missing user or org!")
+		}
 	}
 }
